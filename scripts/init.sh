@@ -16,6 +16,46 @@ TOOLS_DIR="$ROOT_DIR/tools"
 
 trap 'log_error "Script failed at line ${LINENO}"' ERR
 
+resolve_username() {
+    # INIT_USERNAME>USERNAME envs take precedence; fall back to first arg
+    USERNAME="${INIT_USERNAME:-${USERNAME:-${1:-}}}"
+    if [ -z "${USERNAME:-}" ]; then
+        log_error "未提供目标用户名 (INIT_USERNAME/USERNAME/参数)"
+        exit 1
+    fi
+
+    if ! id -u "$USERNAME" >/dev/null 2>&1; then
+        log_error "用户不存在: $USERNAME"
+        exit 1
+    fi
+}
+
+configure_user_privileges() {
+    show_step "配置用户组与 sudo 权限"
+
+    for group in adm users sudo; do
+        if ! groups "$USERNAME" | grep -q "\\b${group}\\b"; then
+            log_info "将用户 ${USERNAME} 添加到 ${group} 组..."
+            usermod -aG "$group" "$USERNAME" || log_warning "添加到 ${group} 组失败"
+        fi
+    done
+
+    local sudoers_file="/etc/sudoers.d/${USERNAME}"
+    log_info "为用户 ${USERNAME} 配置免密sudo: ${sudoers_file}"
+
+    cat <<EOF > "$sudoers_file"
+${USERNAME} ALL=(ALL) NOPASSWD: ALL
+EOF
+
+    chmod 0440 "$sudoers_file"
+
+    if visudo -c >/dev/null 2>&1; then
+        log_success "sudoers 配置校验通过"
+    else
+        log_error "sudoers 配置校验失败，请检查 ${sudoers_file}"
+    fi
+}
+
 
 install_basic_packages() {
     show_step "安装基础软件包"
@@ -375,6 +415,9 @@ setup_firewall() {
 
 
 main() {
+	resolve_username "${1:-}"
+	configure_user_privileges
+
     # Immediately try to disable automatic updates to avoid apt locks
     disable_automatic_updates
 

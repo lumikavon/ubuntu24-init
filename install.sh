@@ -15,24 +15,68 @@ run_init() {
 		log_error "找不到或不可执行: $init_script"
 		exit 1
 	fi
-	sudo "${init_script}" "$@"
+	local username="$1"; shift || true
+	sudo INIT_USERNAME="$username" "${init_script}" "$@"
+}
+
+run_nodejs() {
+	show_step "安装 Node.js 环境 (scripts/nodejs.sh)"
+	local node_script="$SCRIPT_DIR/nodejs.sh"
+	if [ ! -x "$node_script" ]; then
+		log_error "找不到或不可执行: $node_script"
+		exit 1
+	fi
+	"${node_script}"
+}
+
+run_mcp() {
+	show_step "安装 MCP 相关依赖 (scripts/mcp.sh)"
+	local mcp_script="$SCRIPT_DIR/mcp.sh"
+	if [ ! -x "$mcp_script" ]; then
+		log_error "找不到或不可执行: $mcp_script"
+		exit 1
+	fi
+	"${mcp_script}"
+}
+
+run_vnc() {
+	show_step "安装 VNC 服务 (scripts/vnc.sh)"
+	local vnc_script="$SCRIPT_DIR/vnc.sh"
+	if [ ! -x "$vnc_script" ]; then
+		log_error "找不到或不可执行: $vnc_script"
+		exit 1
+	fi
+	"${vnc_script}"
 }
 
 print_menu() {
 	cat <<EOF
 可用任务：
   1) 系统基础初始化 (修改 APT/pip 源，安装基础软件、Python、SSH、UFW)
+	2) 安装 Node.js 环境
+	3) 安装 MCP 依赖
+	4) 安装 VNC 服务
   q) 退出
 EOF
 }
 
 interactive_menu() {
+	local username="$1"
 	while true; do
 		print_menu
 		read -rp "请选择任务编号: " choice
 		case "$choice" in
 			1)
-				run_init
+				run_init "$username"
+				;;
+			2)
+				run_nodejs
+				;;
+			3)
+				run_mcp
+				;;
+			4)
+				run_vnc
 				;;
 			q|Q)
 				log_info "已退出"
@@ -51,6 +95,9 @@ usage() {
 
 任务 (可选)：
   init        运行系统基础初始化 (调用 scripts/init.sh)
+	nodejs      安装 Node.js 环境 (调用 scripts/nodejs.sh)
+	mcp         安装 MCP 依赖 (调用 scripts/mcp.sh)
+	vnc         安装 VNC 服务 (调用 scripts/vnc.sh)
   help        显示本帮助
 
 不带参数运行时，将进入交互式菜单。
@@ -58,17 +105,37 @@ EOF
 }
 
 main() {
+	if [ "$(id -u)" -eq 0 ]; then
+		log_error "请使用非 root 用户运行此脚本"
+		exit 1
+	fi
+
+	local current_user
+	current_user="$(id -un)"
+
 	local cmd="${1:-}"
 	case "${cmd:-}" in
 		init)
 			shift || true
-			run_init "$@"
+			run_init "$current_user" "$@"
+			;;
+		nodejs)
+			shift || true
+			run_nodejs
+			;;
+		mcp)
+			shift || true
+			run_mcp
+			;;
+		vnc)
+			shift || true
+			run_vnc
 			;;
 		help|-h|--help)
 			usage
 			;;
 		"")
-			interactive_menu
+			interactive_menu "$current_user"
 			;;
 		*)
 			log_error "未知任务: $cmd"
