@@ -39,14 +39,14 @@ run_mcp() {
 	"${mcp_script}"
 }
 
-run_vnc() {
-	show_step "安装 VNC 服务 (scripts/vnc.sh)"
-	local vnc_script="$SCRIPT_DIR/vnc.sh"
-	if [ ! -x "$vnc_script" ]; then
-		log_error "找不到或不可执行: $vnc_script"
+run_docker() {
+	show_step "安装 Docker (scripts/docker.sh)"
+	local docker_script="$SCRIPT_DIR/docker.sh"
+	if [ ! -x "$docker_script" ]; then
+		log_error "找不到或不可执行: $docker_script"
 		exit 1
 	fi
-	"${vnc_script}"
+	"${docker_script}"
 }
 
 print_menu() {
@@ -55,7 +55,7 @@ print_menu() {
   1) 系统基础初始化 (修改 APT/pip 源，安装基础软件、Python、SSH、UFW)
 	2) 安装 Node.js 环境
 	3) 安装 MCP 依赖
-	4) 安装 VNC 服务
+	4) 安装 Docker
   q) 退出
 EOF
 }
@@ -76,7 +76,7 @@ interactive_menu() {
 				run_mcp
 				;;
 			4)
-				run_vnc
+				run_docker
 				;;
 			q|Q)
 				log_info "已退出"
@@ -97,7 +97,7 @@ usage() {
   init        运行系统基础初始化 (调用 scripts/init.sh)
 	nodejs      安装 Node.js 环境 (调用 scripts/nodejs.sh)
 	mcp         安装 MCP 依赖 (调用 scripts/mcp.sh)
-	vnc         安装 VNC 服务 (调用 scripts/vnc.sh)
+	docker      安装 Docker (调用 scripts/docker.sh)
   help        显示本帮助
 
 不带参数运行时，将进入交互式菜单。
@@ -127,9 +127,9 @@ main() {
 			shift || true
 			run_mcp
 			;;
-		vnc)
+		docker)
 			shift || true
-			run_vnc
+			run_docker
 			;;
 		help|-h|--help)
 			usage
