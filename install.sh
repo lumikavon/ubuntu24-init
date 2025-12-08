@@ -49,6 +49,16 @@ run_docker() {
 	"${docker_script}"
 }
 
+run_codeserver() {
+	show_step "安装 code-server (scripts/codeserver.sh)"
+	local cs_script="$SCRIPT_DIR/codeserver.sh"
+	if [ ! -x "$cs_script" ]; then
+		log_error "找不到或不可执行: $cs_script"
+		exit 1
+	fi
+	"${cs_script}"
+}
+
 print_menu() {
 	cat <<EOF
 可用任务：
@@ -56,6 +66,7 @@ print_menu() {
 	2) 安装 Node.js 环境
 	3) 安装 MCP 依赖
 	4) 安装 Docker
+	5) 安装 code-server
   q) 退出
 EOF
 }
@@ -78,6 +89,9 @@ interactive_menu() {
 			4)
 				run_docker
 				;;
+			5)
+				run_codeserver
+				;;
 			q|Q)
 				log_info "已退出"
 				exit 0
@@ -98,6 +112,7 @@ usage() {
 	nodejs      安装 Node.js 环境 (调用 scripts/nodejs.sh)
 	mcp         安装 MCP 依赖 (调用 scripts/mcp.sh)
 	docker      安装 Docker (调用 scripts/docker.sh)
+	codeserver  安装 code-server (调用 scripts/codeserver.sh)
   help        显示本帮助
 
 不带参数运行时，将进入交互式菜单。
@@ -130,6 +145,10 @@ main() {
 		docker)
 			shift || true
 			run_docker
+			;;
+		codeserver)
+			shift || true
+			run_codeserver
 			;;
 		help|-h|--help)
 			usage
