@@ -181,7 +181,7 @@ setup_repositories() {
             cp "$DEB822_FILE" "${DEB822_FILE}.backup"
             log_info "已备份: ${DEB822_FILE}.backup"
         fi
-        for host in archive.ubuntu.com security.ubuntu.com ports.ubuntu.com; do
+        for host in archive.ubuntu.com security.ubuntu.com ports.ubuntu.com us.archive.ubuntu.com; do
             if grep -q "^URIs: http://$host/ubuntu" "$DEB822_FILE"; then
                 sed -i "s#^URIs: http://$host/ubuntu#URIs: $MIRROR_HOST#" "$DEB822_FILE" || true
             fi

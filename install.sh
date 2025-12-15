@@ -29,6 +29,47 @@ run_nodejs() {
 	"${node_script}"
 }
 
+run_cxx() {
+	show_step "安装 C/C++ & Qt 开发环境 (scripts/cxx.sh)"
+	local cxx_script="$SCRIPT_DIR/cxx.sh"
+	if [ ! -x "$cxx_script" ]; then
+		log_error "找不到或不可执行: $cxx_script"
+		exit 1
+	fi
+	"${cxx_script}"
+}
+
+run_java() {
+	show_step "安装 Java 开发环境 (OpenJDK 17) (scripts/java.sh)"
+	local java_script="$SCRIPT_DIR/java.sh"
+	if [ ! -x "$java_script" ]; then
+		log_error "找不到或不可执行: $java_script"
+		exit 1
+	fi
+	"${java_script}"
+}
+
+run_golang() {
+	show_step "安装 Go 开发环境 (官方分发版) (scripts/golang.sh)"
+	local go_script="$SCRIPT_DIR/golang.sh"
+	if [ ! -x "$go_script" ]; then
+		log_error "找不到或不可执行: $go_script"
+		exit 1
+	fi
+	"${go_script}"
+}
+
+run_rust() {
+	show_step "安装 Rust 开发环境 (rustup) (scripts/rust.sh)"
+	local rust_script="$SCRIPT_DIR/rust.sh"
+	if [ ! -f "$rust_script" ]; then
+		log_error "找不到脚本: $rust_script"
+		exit 1
+	fi
+	# 直接用 bash 执行，避免可执行位导致失败
+	bash "$rust_script" "$@"
+}
+
 run_mcp() {
 	show_step "安装 MCP 相关依赖 (scripts/mcp.sh)"
 	local mcp_script="$SCRIPT_DIR/mcp.sh"
@@ -102,6 +143,10 @@ print_menu() {
 	6) 安装 Claude Code
 	7) 安装 Codex
 	8) 安装 GeminiCli
+    9) 安装 C/C++ & Qt 开发环境
+	10) 安装 Java 开发环境 (OpenJDK 17)
+	11) 安装 Go 开发环境 (官方分发版)
+	12) 安装 Rust 开发环境 (rustup)
   q) 退出
 EOF
 }
@@ -117,6 +162,18 @@ interactive_menu() {
 				;;
 			2)
 				run_nodejs
+				;;
+			9)
+				run_cxx
+				;;
+			10)
+				run_java
+				;;
+			11)
+				run_golang
+				;;
+			12)
+				run_rust
 				;;
 			3)
 				run_mcp
@@ -154,6 +211,10 @@ usage() {
 任务 (可选)：
   init        运行系统基础初始化 (调用 scripts/init.sh)
 	nodejs      安装 Node.js 环境 (调用 scripts/nodejs.sh)
+	cxx         安装 C/C++ & Qt 开发环境 (调用 scripts/cxx.sh)
+	java        安装 Java 开发环境 (OpenJDK 17) (调用 scripts/java.sh)
+	golang      安装 Go 开发环境 (官方分发版) (调用 scripts/golang.sh)
+	rust        安装 Rust 开发环境 (rustup) (调用 scripts/rust.sh)
 	mcp         安装 MCP 依赖 (调用 scripts/mcp.sh)
 	docker      安装 Docker (调用 scripts/docker.sh)
 	codeserver  安装 code-server (调用 scripts/codeserver.sh)
@@ -184,6 +245,22 @@ main() {
 		nodejs)
 			shift || true
 			run_nodejs
+			;;
+		cxx)
+			shift || true
+			run_cxx
+			;;
+		java)
+			shift || true
+			run_java
+			;;
+		golang)
+			shift || true
+			run_golang
+			;;
+		rust)
+			shift || true
+			run_rust "$@"
 			;;
 		mcp)
 			shift || true
