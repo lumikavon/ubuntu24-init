@@ -12,6 +12,9 @@ log_success() { printf "%s [OK] %s\n" "$(_now)" "$1"; }
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MCP_VENV_DIR="$HOME/.local/mcp-venv"
 
+PIPX_HOME="${PIPX_HOME:-$HOME/.local/pipx}"
+PIPX_BIN_DIR="${PIPX_BIN_DIR:-$HOME/.local/bin}"
+
 install_uvx() {
     show_step "安装 uvx"
 
@@ -35,42 +38,44 @@ install_uvx() {
     fi
 }
 
-resolve_pip_cmd() {
-    if [ -n "${PIP_CMD:-}" ]; then
-        # shellcheck disable=SC2206
-        PIP_CMD_ARR=(${PIP_CMD})
+ensure_pipx() {
+    if command -v pipx >/dev/null 2>&1; then
         return 0
     fi
 
-    if command -v python3 >/dev/null 2>&1; then
-        local ext_file
-        ext_file="$(python3 - <<'PY'
-import sysconfig, os
-print(os.path.join(sysconfig.get_paths().get("purelib", ""), "EXTERNALLY-MANAGED"))
-PY
- 2>/dev/null || true)"
+    log_info "未检测到 pipx，尝试通过 apt 安装..."
 
-        if [ -n "$ext_file" ] && [ -f "$ext_file" ]; then
-            log_info "检测到受管 Python 环境，创建虚拟环境: $MCP_VENV_DIR"
-            if [ ! -d "$MCP_VENV_DIR" ]; then
-                python3 -m venv "$MCP_VENV_DIR" || log_error "虚拟环境创建失败"
-            fi
-            PIP_CMD_ARR=("$MCP_VENV_DIR/bin/pip")
-            "$MCP_VENV_DIR/bin/pip" -q install -U pip wheel setuptools || true
-            return 0
+    if command -v apt-get >/dev/null 2>&1; then
+        if [ "$(id -u)" -eq 0 ]; then
+            apt-get update -y || true
+            apt-get install -y pipx || true
+        elif command -v sudo >/dev/null 2>&1; then
+            sudo apt-get update -y || true
+            sudo apt-get install -y pipx || true
         fi
+    fi
 
-        PIP_CMD_ARR=(python3 -m pip)
+    if ! command -v pipx >/dev/null 2>&1; then
+        log_error "pipx 未安装，无法继续安装 Python MCP 包。请先安装 pipx：sudo apt-get install -y pipx"
+        exit 1
+    fi
+}
+
+resolve_pipx_cmd() {
+    export PIPX_HOME PIPX_BIN_DIR
+    export PATH="$PIPX_BIN_DIR:$PATH"
+
+    if [ -n "${PIPX_CMD:-}" ]; then
+        # shellcheck disable=SC2206
+        PIPX_CMD_ARR=(${PIPX_CMD})
         return 0
     fi
 
-    if command -v pip3 >/dev/null 2>&1; then
-        PIP_CMD_ARR=(pip3)
-        return 0
-    fi
+    ensure_pipx
+    PIPX_CMD_ARR=(pipx)
 
-    log_error "未找到可用的 pip/python3，请先安装 Python/pip"
-    exit 1
+    # Ensure pipx's binary dir is on PATH for current shell.
+    export PATH="$PIPX_BIN_DIR:$PATH"
 }
 
 install_mcp() {
@@ -101,8 +106,8 @@ install_mcp() {
         npm install -g "$pkg" --registry="$npm_registry" || log_warning "安装失败: $pkg"
     done
 
-    resolve_pip_cmd
-    log_info "使用 pip 命令: ${PIP_CMD_ARR[*]}"
+    resolve_pipx_cmd
+    log_info "使用 pipx 命令: ${PIPX_CMD_ARR[*]}"
 
     local pip_pkgs=(
         "mcp-server-time"
@@ -113,8 +118,8 @@ install_mcp() {
     )
 
     for pkg in "${pip_pkgs[@]}"; do
-        log_info "安装 pip 包: $pkg"
-        "${PIP_CMD_ARR[@]}" install -U "$pkg" || log_warning "安装失败: $pkg"
+        log_info "安装 pipx 包: $pkg"
+        "${PIPX_CMD_ARR[@]}" install --force "$pkg" || log_warning "安装失败: $pkg"
     done
 
     log_success "MCP 依赖安装完成"
