@@ -57,3 +57,20 @@ sudo systemctl status code-server@$(whoami)
 
 ## 反向代理可选方案
 如果需要 80/443 端口或多站点共存，建议在前面放置 Nginx/Caddy/Traefik，后端 code-server 监听本地端口（如 127.0.0.1:8080），代理层负责 TLS 终止与证书自动续期。
+
+## Claude Code 安装（可选）
+仓库内置了一键安装入口，可通过 `install.sh` 安装官方包 `@anthropic-ai/claude-code`，并可选执行环境变量配置脚本。
+
+```bash
+# 交互式安装（会提示输入 API Key；留空则跳过配置）
+./install.sh claudecode
+
+# 非交互安装（推荐在 CI/自动化中使用）
+CLAUDECODE_API_KEY="你的API_KEY" ./install.sh claudecode
+
+# 或者显式传参
+./install.sh claudecode --api-key "你的API_KEY"
+
+# 验证
+claude -v
+```

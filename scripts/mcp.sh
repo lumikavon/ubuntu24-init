@@ -97,7 +97,8 @@ install_mcp() {
         "@upstash/context7-mcp"
         "@modelcontextprotocol/server-puppeteer"
         "firecrawl-mcp"
-        "@agentdeskai/browser-tools-mcp@1.2.1"
+        "@agentdeskai/browser-tools-mcp@latest"
+        "chrome-devtools-mcp@latest"
     )
 
     log_info "通过 npm 安装 MCP 相关包..."

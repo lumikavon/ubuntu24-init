@@ -59,6 +59,17 @@ run_codeserver() {
 	"${cs_script}"
 }
 
+run_claudecode() {
+	show_step "安装 Claude Code (scripts/claudecode.sh)"
+	local cc_script="$SCRIPT_DIR/claudecode.sh"
+	if [ ! -f "$cc_script" ]; then
+		log_error "找不到脚本: $cc_script"
+		exit 1
+	fi
+	# 直接用 bash 执行，避免可执行位导致失败
+	bash "$cc_script" "$@"
+}
+
 print_menu() {
 	cat <<EOF
 可用任务：
@@ -67,6 +78,7 @@ print_menu() {
 	3) 安装 MCP 依赖
 	4) 安装 Docker
 	5) 安装 code-server
+	6) 安装 Claude Code
   q) 退出
 EOF
 }
@@ -92,6 +104,9 @@ interactive_menu() {
 			5)
 				run_codeserver
 				;;
+			6)
+				run_claudecode
+				;;
 			q|Q)
 				log_info "已退出"
 				exit 0
@@ -113,6 +128,7 @@ usage() {
 	mcp         安装 MCP 依赖 (调用 scripts/mcp.sh)
 	docker      安装 Docker (调用 scripts/docker.sh)
 	codeserver  安装 code-server (调用 scripts/codeserver.sh)
+	claudecode  安装 Claude Code (可选: --api-key <key> 或设置 CLAUDECODE_API_KEY)
   help        显示本帮助
 
 不带参数运行时，将进入交互式菜单。
@@ -149,6 +165,10 @@ main() {
 		codeserver)
 			shift || true
 			run_codeserver
+			;;
+		claudecode)
+			shift || true
+			run_claudecode "$@"
 			;;
 		help|-h|--help)
 			usage
