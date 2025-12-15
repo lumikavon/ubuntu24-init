@@ -900,7 +900,7 @@ install_claude_code_and_configure() {
         api_key="${CLAUDECODE_API_KEY:-${AICODEMIRROR_API_KEY:-}}"
     fi
     if [ -z "$api_key" ]; then
-        read -rsp "请输入 Claude Code API Key（留空则跳过 env-deploy 配置）: " api_key
+        read -rp "请输入 Claude Code API Key（留空则跳过 env-deploy 配置）: " api_key
         echo
     fi
 
