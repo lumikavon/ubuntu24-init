@@ -65,8 +65,35 @@ get_ssh_port() {
     get_compose_host_port 3 "SSH"
 }
 
+ensure_ssh_config_host() {
+    local host_alias="$1"
+    local ssh_port="$2"
+    local ssh_user="$3"
+
+    local ssh_dir="$HOME/.ssh"
+    local ssh_config="$ssh_dir/config"
+
+    mkdir -p "$ssh_dir" || return 1
+    touch "$ssh_config" || return 1
+
+    if grep -qE "^Host[[:space:]]+$host_alias([[:space:]]|$)" "$ssh_config"; then
+        # Best-effort: don't mutate an existing user-managed host entry.
+        return 0
+    fi
+
+    {
+        echo
+        echo "Host $host_alias"
+        echo "  HostName localhost"
+        echo "  Port $ssh_port"
+        echo "  User $ssh_user"
+        echo "  StrictHostKeyChecking no"
+        echo "  UserKnownHostsFile /dev/null"
+    } >>"$ssh_config"
+}
+
 select_command() {
-    local options=(start stop status shell logs vnc ssh quit)
+    local options=(start stop status shell logs vnc ssh vscode quit)
     while true; do
         echo "Available commands:"
         local i=1
@@ -144,14 +171,33 @@ case "$COMMAND" in
         ;;
     ssh)
         ssh_port="$(get_ssh_port)" || exit 1
-        ssh_user="${2:-root}"
+        ssh_user="${2:-virtualink}"
         echo "Connecting to SSH on localhost:$ssh_port as $ssh_user ..."
         ssh -p "$ssh_port" "${ssh_user}@localhost" "${@:3}"
         ;;
+    vscode)
+        if ! command -v code >/dev/null 2>&1; then
+            echo "error: VS Code 'code' command not found in PATH" >&2
+            exit 1
+        fi
+
+        ssh_port="$(get_ssh_port)" || exit 1
+        ssh_user="${2:-virtualink}"
+        host_alias="${3:-localhost}"
+        remote_dir="${4:-/home/$ssh_user/work}"
+        if [[ "$ssh_user" == "root" ]]; then
+            remote_dir="${4:-/root/work}"
+        fi
+
+        ensure_ssh_config_host "$host_alias" "$ssh_port" "$ssh_user" || exit 1
+        echo "Opening VS Code Remote-SSH: $host_alias:$remote_dir with user $ssh_user in port $ssh_port ..."
+        code --folder-uri="vscode-remote://ssh-remote+${ssh_user}@${host_alias}:${ssh_port}${remote_dir}"
+        ;;
     *)
-        echo "Usage: ./kvm.sh <start|stop|status|shell|logs|vnc|ssh>"
+        echo "Usage: ./kvm.sh <start|stop|status|shell|logs|vnc|ssh|vscode>"
         echo "  logs: passes extra args to docker compose logs"
         echo "  ssh:  ./kvm.sh ssh [user] [extra ssh args...]"
+        echo "  vscode: ./kvm.sh vscode [user] [host-alias] [remote-dir]"
         echo "Or run without arguments for an interactive menu."
         exit 1
         ;;
