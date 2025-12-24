@@ -148,11 +148,11 @@ fi
 
 case "$COMMAND" in
     start)
-        echo "Starting KVM Ubuntu..."
+        echo "Starting KVM ubuntu..."
         cd "$KVM_DIR" && docker compose up -d
         ;;
     stop)
-        echo "Stopping KVM Ubuntu..."
+        echo "Stopping KVM ubuntu..."
         cd "$KVM_DIR" && docker compose stop
         ;;
     status)
@@ -190,7 +190,28 @@ case "$COMMAND" in
         fi
 
         ensure_ssh_config_host "$host_alias" "$ssh_port" "$ssh_user" || exit 1
+
+        if ! command -v ssh >/dev/null 2>&1; then
+            echo "error: 'ssh' command not found in PATH (required to ensure remote directory exists: $remote_dir)" >&2
+            exit 1
+        fi
+
+        if [[ -z "$remote_dir" ]]; then
+            echo "error: remote_dir is empty" >&2
+            exit 1
+        fi
+
+        remote_dir_escaped="${remote_dir//\'/\'\\\'\'}"
+
+        if ! ssh -p "$ssh_port" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${ssh_user}@${host_alias}" \
+            "mkdir -p -- '$remote_dir_escaped'"
+        then
+            echo "error: failed to ensure remote directory exists: $remote_dir" >&2
+            exit 1
+        fi
+
         echo "Opening VS Code Remote-SSH: $host_alias:$remote_dir with user $ssh_user in port $ssh_port ..."
+        rm -f ~/.ssh/known_hosts
         code --folder-uri="vscode-remote://ssh-remote+${ssh_user}@${host_alias}:${ssh_port}${remote_dir}"
         ;;
     *)
