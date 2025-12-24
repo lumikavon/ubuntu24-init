@@ -172,6 +172,9 @@ case "$COMMAND" in
     ssh)
         ssh_port="$(get_ssh_port)" || exit 1
         ssh_user="${2:-virtualink}"
+        echo "To copy your SSH public key into the VM, run:"
+        echo "  ssh-copy-id -i ~/.ssh/id_rsa.pub -p $ssh_port ${ssh_user}@localhost"
+
         echo "Connecting to SSH on localhost:$ssh_port as $ssh_user ..."
         ssh -p "$ssh_port" "${ssh_user}@localhost" "${@:3}"
         ;;
@@ -211,7 +214,7 @@ case "$COMMAND" in
         fi
 
         echo "Opening VS Code Remote-SSH: $host_alias:$remote_dir with user $ssh_user in port $ssh_port ..."
-        rm -f ~/.ssh/known_hosts
+        # rm -f ~/.ssh/known_hosts
         code --folder-uri="vscode-remote://ssh-remote+${ssh_user}@${host_alias}:${ssh_port}${remote_dir}"
         ;;
     *)

@@ -28,7 +28,7 @@ function Get-ScriptDir {
 }
 
 $ScriptDir = Get-ScriptDir
-$KvmDir = Join-Path -Path (Join-Path -Path $ScriptDir -ChildPath 'kvm') -ChildPath 'ubuntu'
+$KvmDir = Join-Path -Path (Join-Path -Path $ScriptDir -ChildPath 'kvm') -ChildPath 'openeuler'
 $ComposeFile = Join-Path -Path $KvmDir -ChildPath 'docker-compose.yml'
 $IsWindowsHost = $env:OS -eq 'Windows_NT'
 
@@ -323,11 +323,11 @@ if (-not $Command) {
 
 switch ($Command) {
     'start' {
-        Write-Host 'Starting KVM ubuntu...'
+        Write-Host 'Starting KVM Openeuler...'
         Invoke-DockerCompose -ComposeArgs @('up', '-d')
     }
     'stop' {
-        Write-Host 'Stopping KVM ubuntu...'
+        Write-Host 'Stopping KVM Openeuler...'
         Invoke-DockerCompose -ComposeArgs @('stop')
     }
     'status' {
@@ -404,6 +404,10 @@ switch ($Command) {
         $sshPort = Get-SshPort
         $sshUser = if ($ExtraArgs.Count -ge 1) { $ExtraArgs[0] } else { 'virtualink' }
         $sshExtra = if ($ExtraArgs.Count -gt 1) { $ExtraArgs[1..($ExtraArgs.Count - 1)] } else { @() }
+
+        $sshCopyIdCmd = "ssh-copy-id -p $sshPort $sshUser@localhost"
+        Write-Host "Run to copy your SSH key to the VM: $sshCopyIdCmd"
+
         Write-Host "Connecting to SSH on localhost:$sshPort as $sshUser ..."
         & ssh -p $sshPort "$sshUser@localhost" @sshExtra
         exit $LASTEXITCODE
@@ -444,7 +448,7 @@ switch ($Command) {
 
         Write-Host "Opening VS Code Remote-SSH: ${hostAlias}:$remoteDir with user $sshUser in port $sshPort ..."
         $folderUri = "vscode-remote://ssh-remote+${sshUser}@${hostAlias}:${sshPort}${remoteDir}"
-        Remove-Item -Path ~/.ssh/known_hosts -ErrorAction SilentlyContinue
+        # Remove-Item -Path ~/.ssh/known_hosts -ErrorAction SilentlyContinue
         & code --folder-uri=$folderUri
         exit $LASTEXITCODE
     }
