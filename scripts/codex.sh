@@ -253,7 +253,6 @@ configure_codex_mcp_servers() {
     if command_exists npx; then
         codex mcp add context7 -- npx -y @upstash/context7-mcp || true
         codex mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking || true
-        codex mcp add puppeteer -- npx -y @modelcontextprotocol/server-puppeteer || true
         codex mcp add playwright -- npx -y @playwright/mcp@latest || true
         codex mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest || true
     fi

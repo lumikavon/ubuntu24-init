@@ -125,7 +125,6 @@ configure_gemini_mcp_servers() {
 	if command -v npx >/dev/null 2>&1; then
 		gemini mcp add context7 npx -y @upstash/context7-mcp || true
 		gemini mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking || true
-		gemini mcp add puppeteer npx -y @modelcontextprotocol/server-puppeteer || true
 		gemini mcp add playwright npx -y @playwright/mcp@latest || true
 		gemini mcp add chrome-devtools npx -y chrome-devtools-mcp@latest || true
 	fi

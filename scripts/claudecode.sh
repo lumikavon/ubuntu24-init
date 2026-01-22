@@ -949,21 +949,11 @@ configure_claude_mcp_servers() {
         claude mcp add --scope user sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking || true
     fi
 
-    # Puppeteer MCP 服务器
-    if command_exists npx; then
-        claude mcp add --scope user puppeteer -- npx -y @modelcontextprotocol/server-puppeteer || true
-    fi
-
     # Playwright MCP 服务器
     if command_exists npx; then
         claude mcp add --scope user playwright -- npx -y @playwright/mcp@latest || true
     fi
-
-    # Chrome DevTools MCP 服务器
-    if command_exists npx; then
-        claude mcp add --scope user chrome-devtools -- npx -y chrome-devtools-mcp@latest || true
-    fi
-
+    
     echo -e "${GREEN}✓ MCP Servers 配置步骤已执行（如有重复/已存在将被忽略）${NC}"
 }
 

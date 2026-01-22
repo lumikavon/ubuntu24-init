@@ -132,6 +132,20 @@ run_gemini() {
 	bash "$gemini_script" "$@"
 }
 
+run_switchkey() {
+	show_step "安装 Claude Code Switch Key"
+	local src="$SCRIPT_DIR/assets/switch.claude.key.sh"
+	local dest="/usr/local/bin/switch.claude.key.sh"
+	if [ ! -f "$src" ]; then
+		log_error "找不到脚本: $src"
+		exit 1
+	fi
+	sudo cp "$src" "$dest"
+	sudo chmod +x "$dest"
+	log_info "已安装到 $dest"
+	exit 0
+}
+
 print_menu() {
 	cat <<EOF
 可用任务：
@@ -147,6 +161,7 @@ print_menu() {
 	10) 安装 Java 开发环境 (OpenJDK 17)
 	11) 安装 Go 开发环境 (官方分发版)
 	12) 安装 Rust 开发环境 (rustup)
+	13) 安装 Claude Code Switch Key
   q) 退出
 EOF
 }
@@ -193,6 +208,9 @@ interactive_menu() {
 			8)
 				run_gemini
 				;;
+			13)
+				run_switchkey
+				;;
 			q|Q)
 				log_info "已退出"
 				exit 0
@@ -221,6 +239,7 @@ usage() {
 	claudecode  安装 Claude Code (可选: --api-key <key> 或设置 CLAUDECODE_API_KEY)
 	codex       安装 Codex (可选: --api-key <key> 或设置 OPENAI_API_KEY)
 	gemini      安装 GeminiCli (可选: --api-key <key> 或设置 GEMINI_API_KEY)
+	switchkey   安装 Claude Code Switch Key 到 /usr/local/bin
   help        显示本帮助
 
 不带参数运行时，将进入交互式菜单。
@@ -285,6 +304,10 @@ main() {
 		gemini)
 			shift || true
 			run_gemini "$@"
+			;;
+		switchkey)
+			shift || true
+			run_switchkey
 			;;
 		help|-h|--help)
 			usage

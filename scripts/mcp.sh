@@ -90,15 +90,12 @@ install_mcp() {
     local npm_pkgs=(
         "@playwright/mcp@latest"
         "@modelcontextprotocol/server-sequential-thinking"
-        "@modelcontextprotocol/server-memory"
-        "@modelcontextprotocol/server-filesystem"
-        "mcp-mongo-server"
         "@modelcontextprotocol/server-redis"
         "@upstash/context7-mcp"
-        "@modelcontextprotocol/server-puppeteer"
-        "firecrawl-mcp"
         "@agentdeskai/browser-tools-mcp@latest"
         "chrome-devtools-mcp@latest"
+        "@brave/brave-search-mcp-server"
+	    "pptr-mcp"
     )
 
     log_info "通过 npm 安装 MCP 相关包..."

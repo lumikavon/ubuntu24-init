@@ -20,13 +20,6 @@
         "@modelcontextprotocol/server-sequential-thinking"
       ]
     },
-    "puppeteer": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-puppeteer"
-      ]
-    },
     "playwright": {
       "command": "npx",
       "args": [
