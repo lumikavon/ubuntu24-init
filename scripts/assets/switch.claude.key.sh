@@ -56,6 +56,7 @@ switch_claude_code_key() {
 	content=$(cat <<EOF
 export ANTHROPIC_BASE_URL="https://api.aicodemirror.com/api/claude"
 export ANTHROPIC_API_KEY="$new_key"
+export ANTHROPIC_AUTH_TOKEN="$new_key"
 EOF
 )
 	update_bashrc_block "$CC_BEGIN" "$CC_END" "$content"
@@ -134,6 +135,7 @@ apply_key_to_claude() {
 
 	export ANTHROPIC_BASE_URL="https://api.aicodemirror.com/api/claude"
 	export ANTHROPIC_API_KEY="$new_key"
+export ANTHROPIC_AUTH_TOKEN="$new_key"
 	log_success "已在当前 shell 中设置 ANTHROPIC_API_KEY"
 	log_info "此设置仅在当前终端会话有效"
 }
@@ -179,6 +181,7 @@ switch_all_keys() {
 	cc_content=$(cat <<EOF
 export ANTHROPIC_BASE_URL="https://api.aicodemirror.com/api/claude"
 export ANTHROPIC_API_KEY="$new_key"
+export ANTHROPIC_AUTH_TOKEN="$new_key"
 EOF
 )
 	update_bashrc_block "$CC_BEGIN" "$CC_END" "$cc_content"
@@ -224,6 +227,7 @@ apply_key_to_all() {
 
 	export ANTHROPIC_BASE_URL="https://api.aicodemirror.com/api/claude"
 	export ANTHROPIC_API_KEY="$new_key"
+export ANTHROPIC_AUTH_TOKEN="$new_key"
 	export OPENAI_BASE_URL="https://api.aicodemirror.com/api/codex/backend-api/codex"
 	export OPENAI_API_KEY="$new_key"
 	export GOOGLE_GEMINI_BASE_URL="https://api.aicodemirror.com/api/gemini"
